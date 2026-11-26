@@ -1,0 +1,6 @@
+{
+  "name": "Sog'lom Ko'chat",
+  "description": "Telegram orqali kirish, ko'chatlar parvarishi qo'llanmasi va Gemini AI agro-kasalliklarni aniqlash platformasi",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

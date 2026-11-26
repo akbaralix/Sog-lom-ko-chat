@@ -1,0 +1,82 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-display: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    --font-body: 'DM Sans', system-ui, -apple-system, sans-serif;
+  }
+
+  body {
+    font-family: var(--font-body);
+    background-color: #e8ecef;
+    color: #0f172a;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+  }
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+@keyframes ai-electric-sweep {
+  0% {
+    transform: translateY(-100%);
+  }
+  50% {
+    transform: translateY(340%);
+  }
+  100% {
+    transform: translateY(-100%);
+  }
+}
+
+@keyframes ai-electric-shimmer {
+  0% {
+    transform: translateX(-60%) skewX(-12deg);
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translateX(160%) skewX(-12deg);
+    opacity: 0.45;
+  }
+}
+
+@keyframes ai-electric-glow {
+  0%, 100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.animate-ai-sweep {
+  animation: ai-electric-sweep 2.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.animate-ai-shimmer {
+  animation: ai-electric-shimmer 1.8s ease-in-out infinite;
+}
+
+.animate-ai-glow {
+  animation: ai-electric-glow 1.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-ai-sweep,
+  .animate-ai-shimmer,
+  .animate-ai-glow {
+    animation: none;
+  }
+}
