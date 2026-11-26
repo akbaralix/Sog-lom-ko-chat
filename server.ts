@@ -51,6 +51,7 @@ import {
   isTrustedMutationOrigin,
   parseCookies,
 } from './src/lib/sessionCookie';
+import { resolveOrCreateSessionSecret } from './src/lib/sessionSecret';
 import {
   buildDiagnosisChatContextPrompt,
   canSendChatMessage,
@@ -76,10 +77,10 @@ const DATA_DIR = process.env.DATA_DIR
   ? path.resolve(process.env.DATA_DIR)
   : path.resolve(process.cwd(), '.data');
 const STORE_PATH = path.resolve(DATA_DIR, 'store.json');
-const SESSION_SECRET =
-  process.env.SESSION_SECRET && process.env.SESSION_SECRET.length >= 16
-    ? process.env.SESSION_SECRET
-    : crypto.randomBytes(32).toString('hex');
+const SESSION_SECRET = resolveOrCreateSessionSecret({
+  envSecret: process.env.SESSION_SECRET,
+  dataDir: DATA_DIR,
+});
 
 const TELEGRAM_BOT_TOKEN = (process.env.TELEGRAM_BOT_TOKEN ?? '').trim();
 let resolvedBotUsername = (process.env.TELEGRAM_BOT_USERNAME ?? '').trim().replace(/^@/, '');
@@ -484,7 +485,7 @@ function startTelegramPolling() {
 
   void (async () => {
     const me = await telegramApi<{ username?: string }>('getMe');
-    if (me?.username && !resolvedBotUsername) {
+    if (me?.username) {
       resolvedBotUsername = me.username;
     }
 
@@ -716,6 +717,7 @@ function getGeminiClient(): GoogleGenAI | null {
 
 async function createAppServer() {
   const app = express();
+  app.set('trust proxy', 1);
   app.use(express.json({ limit: '12mb' }));
   app.use(express.urlencoded({ extended: false }));
 
@@ -738,7 +740,7 @@ async function createAppServer() {
       if (value.createdAt < cutoff) challenges.delete(key);
     }
 
-    const botUsername = resolvedBotUsername || 'SoglomKochatBot';
+    const botUsername = resolvedBotUsername || 'AgroTeshbot';
     const deepLink = `https://t.me/${botUsername}?start=auth_${id}`;
 
     res.json({
@@ -1043,7 +1045,8 @@ async function createAppServer() {
       res.json({ authenticated: false, user: null });
       return;
     }
-    res.json({ authenticated: true, user: toPublicUser(user) });
+    setSessionCookie(req, res, token);
+    res.json({ authenticated: true, token, user: toPublicUser(user) });
   });
 
   app.get('/api/me', requireAuth, (req: AuthenticatedRequest, res) => {

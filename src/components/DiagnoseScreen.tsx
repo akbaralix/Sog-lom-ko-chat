@@ -10,6 +10,7 @@ import {
   Sprout,
   X,
 } from 'lucide-react';
+import { authFetch } from '../lib/clientSession';
 import type { DiagnosisRecord, UserProfile } from '../types';
 import { AnnotatedDiagnosisImage } from './AnnotatedDiagnosisImage';
 import { DiagnosisResultView } from './DiagnosisResultView';
@@ -68,24 +69,22 @@ export function DiagnoseScreen({
         return;
       }
 
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest',
-      };
-      if (token) {
-        headers.Authorization = `Bearer ${token}`;
-      }
-      const res = await fetch('/api/diagnose', {
-        method: 'POST',
-        credentials: 'include',
-        headers,
-        body: JSON.stringify({
-          imageBase64: base64,
-          mimeType,
-          parentDiagnosisId: followUpTarget?.id ?? null,
-        }),
-        signal: controller.signal,
-      });
+      const res = await authFetch(
+        '/api/diagnose',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            imageBase64: base64,
+            mimeType,
+            parentDiagnosisId: followUpTarget?.id ?? null,
+          }),
+          signal: controller.signal,
+        },
+        token,
+      );
 
       const rawText = await res.text();
       let data: {
@@ -120,7 +119,7 @@ export function DiagnoseScreen({
         if (data.error) {
           setError(data.error);
         } else if (res.status === 401) {
-          setError("Sessiya muddati tugagan. Iltimos, hisobingizdan chiqib qayta kiring.");
+          setError("Sessiya muddati tugagan. Iltimos, qayta kiring.");
         } else if (res.status === 413) {
           setError("Rasm hajmi juda katta. Qayta tahrirlab kichikroq rasm yuboring.");
         } else if (res.status === 502 || res.status === 503 || res.status === 504) {
@@ -134,8 +133,6 @@ export function DiagnoseScreen({
       if (data.diagnosis && data.user) {
         setResult(data.diagnosis);
         onUserUpdated(data.user);
-      } else if (rawText.trim().startsWith('<')) {
-        setError("Sessiya yangilanishi kerak. Sahifani yangilab qayta urinib ko'ring.");
       } else {
         setError("Serverdan kutilmagan javob keldi. Qayta urinib ko'ring.");
       }

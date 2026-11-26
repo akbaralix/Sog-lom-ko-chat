@@ -12,6 +12,7 @@ import {
   Stethoscope,
 } from 'lucide-react';
 import { calculateDosage, matchPreparations } from '../lib/agroCatalog';
+import { authFetch } from '../lib/clientSession';
 import type { DiagnosisRecord, UserProfile } from '../types';
 import { DiagnosisChatSection } from './DiagnosisChatSection';
 import { OrderSheetModal } from './OrderSheetModal';
@@ -71,18 +72,17 @@ export function DiagnosisResultView({
     setStartingPlan(true);
     setPlanError(null);
     try {
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest',
-      };
-      if (token) headers.Authorization = `Bearer ${token}`;
-
-      const res = await fetch('/api/treatments/start', {
-        method: 'POST',
-        credentials: 'include',
-        headers,
-        body: JSON.stringify({ diagnosisId: result.id }),
-      });
+      const res = await authFetch(
+        '/api/treatments/start',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ diagnosisId: result.id }),
+        },
+        token,
+      );
       const data = (await res.json()) as { user?: UserProfile; error?: string };
       if (!res.ok || !data.user) {
         setPlanError(data.error || "Eslatmani yoqishda xatolik.");
@@ -102,21 +102,20 @@ export function DiagnosisResultView({
     setSendingConsult(true);
     setConsultError(null);
     try {
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest',
-      };
-      if (token) headers.Authorization = `Bearer ${token}`;
-
-      const res = await fetch('/api/consultations', {
-        method: 'POST',
-        credentials: 'include',
-        headers,
-        body: JSON.stringify({
-          diagnosisId: result.id,
-          note: consultNote,
-        }),
-      });
+      const res = await authFetch(
+        '/api/consultations',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            diagnosisId: result.id,
+            note: consultNote,
+          }),
+        },
+        token,
+      );
       const data = (await res.json()) as { user?: UserProfile; error?: string };
       if (!res.ok || !data.user) {
         setConsultError(data.error || "So'rov yuborishda xatolik.");

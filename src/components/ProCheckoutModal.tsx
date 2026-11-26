@@ -8,6 +8,7 @@ import {
   ShieldCheck,
   X,
 } from 'lucide-react';
+import { authFetch } from '../lib/clientSession';
 import { PRO_PACKAGES, formatUzs } from '../lib/paymentCatalog';
 import type {
   PaymentOrder,
@@ -56,12 +57,11 @@ export function ProCheckoutModal({
     const timer = window.setInterval(() => {
       void (async () => {
         try {
-          const headers: Record<string, string> = {};
-          if (token) headers.Authorization = `Bearer ${token}`;
-          const res = await fetch(`/api/payments/${encodeURIComponent(pendingOrder.id)}`, {
-            credentials: 'include',
-            headers,
-          });
+          const res = await authFetch(
+            `/api/payments/${encodeURIComponent(pendingOrder.id)}`,
+            {},
+            token,
+          );
           if (!res.ok) return;
           const data = (await res.json()) as { order?: PaymentOrder; user?: UserProfile };
           if (data.order?.status === 'paid' && data.user) {
@@ -92,21 +92,20 @@ export function ProCheckoutModal({
     setSubmitting(true);
     setError(null);
     try {
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest',
-      };
-      if (token) headers.Authorization = `Bearer ${token}`;
-
-      const res = await fetch('/api/payments/create', {
-        method: 'POST',
-        credentials: 'include',
-        headers,
-        body: JSON.stringify({
-          packageId: selectedPkg,
-          provider,
-        }),
-      });
+      const res = await authFetch(
+        '/api/payments/create',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            packageId: selectedPkg,
+            provider,
+          }),
+        },
+        token,
+      );
       const data = (await res.json()) as {
         order?: PaymentOrder;
         checkoutUrl?: string | null;
@@ -134,18 +133,17 @@ export function ProCheckoutModal({
     setConfirming(true);
     setError(null);
     try {
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest',
-      };
-      if (token) headers.Authorization = `Bearer ${token}`;
-
-      const res = await fetch('/api/payments/sandbox-confirm', {
-        method: 'POST',
-        credentials: 'include',
-        headers,
-        body: JSON.stringify({ orderId: pendingOrder.id }),
-      });
+      const res = await authFetch(
+        '/api/payments/sandbox-confirm',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ orderId: pendingOrder.id }),
+        },
+        token,
+      );
       const data = (await res.json()) as {
         order?: PaymentOrder;
         user?: UserProfile;

@@ -10,10 +10,17 @@ import {
   initTelegramMiniAppShell,
   waitForTelegramWebAppInitData,
 } from './lib/telegramClient';
+import {
+  authFetch,
+  clearStoredAuthToken,
+  getStoredAuthToken,
+  registerSessionCallbacks,
+  setStoredAuthToken,
+} from './lib/clientSession';
 import type { AppTab, DiagnosisRecord, SeedlingItem, UserProfile } from './types';
 
 export default function App() {
-  const [token, setToken] = useState<string | null>(null);
+  const [token, setToken] = useState<string | null>(() => getStoredAuthToken());
   const [user, setUser] = useState<UserProfile | null>(null);
   const [activeTab, setActiveTab] = useState<AppTab>('home');
   const [selectedSeedling, setSelectedSeedling] = useState<SeedlingItem | null>(null);
@@ -32,6 +39,26 @@ export default function App() {
   const [booting, setBooting] = useState<boolean>(() => typeof window !== 'undefined');
 
   useEffect(() => {
+    registerSessionCallbacks({
+      onRecovered: (newToken, recoveredUser) => {
+        if (newToken) {
+          setStoredAuthToken(newToken);
+          setToken(newToken);
+        }
+        setUser(recoveredUser);
+      },
+      onExpired: () => {
+        clearStoredAuthToken();
+        setToken(null);
+        setUser(null);
+      },
+    });
+    return () => {
+      registerSessionCallbacks({});
+    };
+  }, []);
+
+  useEffect(() => {
     initTelegramMiniAppShell();
     const params = new URLSearchParams(window.location.search);
     const autostart = params.get('autostart') === '1';
@@ -47,26 +74,46 @@ export default function App() {
           });
           const data = (await res.json()) as { token?: string; user?: UserProfile };
           if (!cancelled && res.ok && data.user) {
-            if (data.token) setToken(data.token);
+            if (data.token) {
+              setStoredAuthToken(data.token);
+              setToken(data.token);
+            }
             setUser(data.user);
           }
           return;
         }
 
+        const savedToken = getStoredAuthToken();
+        const sessionHeaders: Record<string, string> = {};
+        if (savedToken) {
+          sessionHeaders.Authorization = `Bearer ${savedToken}`;
+        }
         const res = await fetch('/api/auth/session', {
           credentials: 'include',
+          headers: sessionHeaders,
         });
         if (res.ok) {
-          const data = (await res.json()) as { authenticated?: boolean; user?: UserProfile | null };
+          const data = (await res.json()) as {
+            authenticated?: boolean;
+            token?: string | null;
+            user?: UserProfile | null;
+          };
           if (!cancelled && data.authenticated && data.user) {
+            const activeToken = data.token ?? savedToken ?? null;
+            if (activeToken) {
+              setStoredAuthToken(activeToken);
+              setToken(activeToken);
+            }
             setUser(data.user);
             const returnOrderId = params.get('payment_order');
             if (returnOrderId) {
               setActiveTab('profile');
               try {
-                const pRes = await fetch(`/api/payments/${encodeURIComponent(returnOrderId)}`, {
-                  credentials: 'include',
-                });
+                const pRes = await authFetch(
+                  `/api/payments/${encodeURIComponent(returnOrderId)}`,
+                  {},
+                  activeToken,
+                );
                 if (pRes.ok) {
                   const pData = (await pRes.json()) as { user?: UserProfile };
                   if (!cancelled && pData.user) {
@@ -78,6 +125,10 @@ export default function App() {
               }
             }
             return;
+          }
+          if (!data.authenticated && savedToken) {
+            clearStoredAuthToken();
+            if (!cancelled) setToken(null);
           }
         }
 
@@ -107,6 +158,7 @@ export default function App() {
               };
             };
             if (!cancelled && webData.status === 'verified' && webData.token && webData.user) {
+              setStoredAuthToken(webData.token);
               setToken(webData.token);
               setUser(webData.user);
               return;
@@ -148,6 +200,7 @@ export default function App() {
     } catch {
       // Ignore network errors on logout
     }
+    clearStoredAuthToken();
     setToken(null);
     setUser(null);
     setSelectedSeedling(null);
@@ -185,6 +238,7 @@ export default function App() {
             initialWebAppAuth={webAppAuthContext}
             onAuthenticated={(newToken, newUser) => {
               setWebAppAuthContext(null);
+              setStoredAuthToken(newToken);
               setToken(newToken);
               setUser(newUser);
               setActiveTab('home');

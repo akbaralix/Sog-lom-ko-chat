@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { CheckCircle2, MapPin, PackageCheck, Phone, X } from 'lucide-react';
 import { UZ_REGIONS } from '../lib/agroCatalog';
+import { authFetch } from '../lib/clientSession';
 import type { UserProfile } from '../types';
 
 interface OrderSheetModalProps {
@@ -39,24 +40,23 @@ export function OrderSheetModal({
     setError(null);
 
     try {
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest',
-      };
-      if (token) headers.Authorization = `Bearer ${token}`;
-
-      const res = await fetch('/api/orders', {
-        method: 'POST',
-        credentials: 'include',
-        headers,
-        body: JSON.stringify({
-          itemType,
-          itemName,
-          quantityLabel,
-          region,
-          phone,
-        }),
-      });
+      const res = await authFetch(
+        '/api/orders',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            itemType,
+            itemName,
+            quantityLabel,
+            region,
+            phone,
+          }),
+        },
+        token,
+      );
       const data = (await res.json()) as { user?: UserProfile; error?: string };
       if (!res.ok || !data.user) {
         setError(data.error || "Buyurtmani yuborishda xatolik yuz berdi.");

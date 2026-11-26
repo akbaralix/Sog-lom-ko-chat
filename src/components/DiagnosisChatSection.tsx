@@ -6,6 +6,7 @@ import {
   canSendChatMessage,
   getQuickChatPrompts,
 } from '../lib/diagnosisChat';
+import { authFetch } from '../lib/clientSession';
 import type { DiagnosisRecord, UserProfile } from '../types';
 
 interface DiagnosisChatSectionProps {
@@ -50,20 +51,17 @@ export function DiagnosisChatSection({
     setError(null);
 
     try {
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest',
-      };
-      if (token) {
-        headers.Authorization = `Bearer ${token}`;
-      }
-
-      const res = await fetch(`/api/diagnoses/${encodeURIComponent(diagnosis.id)}/chat`, {
-        method: 'POST',
-        credentials: 'include',
-        headers,
-        body: JSON.stringify({ message: trimmed }),
-      });
+      const res = await authFetch(
+        `/api/diagnoses/${encodeURIComponent(diagnosis.id)}/chat`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ message: trimmed }),
+        },
+        token,
+      );
 
       const rawText = await res.text();
       let data: {
