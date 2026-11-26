@@ -18,7 +18,7 @@ export default defineConfig(() => {
           name: "Sog'lom Ko'chat",
           short_name: "Ko'chat AI",
           description: "Ko'chatlar parvarishi va rasm orqali kasalliklarni aniqlash platformasi.",
-          theme_color: '#3390EC',
+          theme_color: '#059669',
           background_color: '#F4F4F5',
           display: 'standalone',
           orientation: 'portrait',

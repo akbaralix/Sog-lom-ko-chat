@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs';
+import http from 'node:http';
 import path from 'node:path';
 import express, { NextFunction, Request, Response } from 'express';
 import dotenv from 'dotenv';
@@ -70,8 +71,10 @@ import type {
 
 dotenv.config();
 
-const PORT = 3000;
-const DATA_DIR = path.resolve(process.cwd(), '.data');
+const PORT = Number(process.env.PORT) || 3000;
+const DATA_DIR = process.env.DATA_DIR
+  ? path.resolve(process.env.DATA_DIR)
+  : path.resolve(process.cwd(), '.data');
 const STORE_PATH = path.resolve(DATA_DIR, 'store.json');
 const SESSION_SECRET =
   process.env.SESSION_SECRET && process.env.SESSION_SECRET.length >= 16
@@ -2314,10 +2317,67 @@ async function createAppServer() {
     res.status(404).end();
   });
 
+  const httpServer = http.createServer(app);
+
   if (process.env.NODE_ENV !== 'production') {
+    const hmrDisabled = process.env.DISABLE_HMR === 'true';
+    if (hmrDisabled) {
+      app.get('/@vite/client', (_req, res) => {
+        res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+        res.setHeader('Cache-Control', 'no-store');
+        res.send(`
+const sheetsMap = new Map();
+export function updateStyle(id, content) {
+  let style = sheetsMap.get(id);
+  if (!style) {
+    style = document.createElement('style');
+    style.setAttribute('type', 'text/css');
+    style.setAttribute('data-vite-dev-id', id);
+    style.textContent = content;
+    document.head.appendChild(style);
+    sheetsMap.set(id, style);
+  } else if (style.textContent !== content) {
+    style.textContent = content;
+  }
+}
+export function removeStyle(id) {
+  const style = sheetsMap.get(id);
+  if (style && style.parentNode) {
+    style.parentNode.removeChild(style);
+  }
+  sheetsMap.delete(id);
+}
+export function createHotContext() {
+  return {
+    data: {},
+    accept() {},
+    acceptExports() {},
+    dispose() {},
+    prune() {},
+    decline() {},
+    invalidate() {},
+    on() {},
+    off() {},
+    send() {},
+  };
+}
+export function injectQuery(url, queryToInject) {
+  if (!url || (url[0] !== '.' && url[0] !== '/')) return url;
+  const pathname = url.replace(/[?#].*$/, '');
+  const parsed = new URL(url, 'http://vite.dev');
+  return \`\${pathname}?\${queryToInject}\${parsed.search ? '&' + parsed.search.slice(1) : ''}\${parsed.hash || ''}\`;
+}
+export class ErrorOverlay {}
+`);
+      });
+    }
+
     const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
-      server: { middlewareMode: true },
+      server: {
+        middlewareMode: true,
+        hmr: hmrDisabled ? false : { server: httpServer },
+      },
       appType: 'spa',
     });
     app.use(vite.middlewares);
@@ -2354,7 +2414,7 @@ async function createAppServer() {
     }, 5 * 60 * 1000);
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
+  httpServer.listen(PORT, '0.0.0.0', () => {
     console.log(`Sog'lom Ko'chat server running on http://0.0.0.0:${PORT}`);
   });
 }

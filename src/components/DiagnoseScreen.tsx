@@ -360,7 +360,7 @@ export function DiagnoseScreen({
                   <div className="p-4 flex items-center justify-center gap-3 text-[#3390EC] bg-gradient-to-r from-[#3390EC]/5 via-cyan-500/8 to-emerald-500/5">
                     <Loader2 className="w-5 h-5 animate-spin shrink-0" />
                     <span className="text-[14px] font-semibold">
-                      Gemini AI rasmni tahlil qilmoqda...
+                      Agro AI rasmni tahlil qilmoqda...
                     </span>
                   </div>
                 )}

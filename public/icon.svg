@@ -1,26 +1,46 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <defs>
-    <linearGradient id="tgBg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#2AABEE" />
-      <stop offset="55%" stop-color="#229ED9" />
-      <stop offset="100%" stop-color="#1A82C4" />
+    <linearGradient id="agroBg" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#03735A" />
+      <stop offset="55%" stop-color="#0C915A" />
+      <stop offset="100%" stop-color="#17B256" />
     </linearGradient>
-    <linearGradient id="leafGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#4ADE80" />
-      <stop offset="100%" stop-color="#16A34A" />
+    <linearGradient id="mintLeaf" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#D1FAE5" />
+      <stop offset="100%" stop-color="#86EFAC" />
     </linearGradient>
-    <filter id="softShadow" x="-15%" y="-15%" width="130%" height="130%">
-      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#0B4F7A" flood-opacity="0.28" />
-    </filter>
   </defs>
-  <rect width="512" height="512" fill="url(#tgBg)" />
-  <g filter="url(#softShadow)">
-    <!-- Sprouting seedling integrated above the Telegram wing -->
-    <path d="M222 252 C220 214, 214 192, 184 176 C160 164, 144 172, 138 178 C148 206, 174 222, 206 218 C212 228, 214 242, 212 258 Z" fill="url(#leafGrad)" />
-    <path d="M226 254 C228 204, 248 168, 294 152 C308 147, 314 148, 314 148 C306 184, 278 214, 240 218 C236 232, 234 244, 234 256 Z" fill="url(#leafGrad)" />
-    <path d="M214 202 C206 178, 210 156, 222 144 C228 160, 226 182, 220 204 Z" fill="#4ADE80" />
-    <!-- Telegram style paper plane body -->
-    <path d="M138 274 L356 186 C369 181, 378 190, 374 203 L324 358 C320 370, 307 374, 297 366 L244 322 L212 350 C206 355, 198 351, 200 342 L208 298 L314 218 L188 286 L142 288 C132 288, 130 278, 138 274 Z" fill="#FFFFFF" />
-    <path d="M208 298 L200 342 C199 349, 205 354, 212 350 L244 322 Z" fill="#D2E8F8" />
-  </g>
+  <rect width="512" height="512" fill="url(#agroBg)" />
+  <!-- Protective agro shield outline -->
+  <path
+    d="M256 62 L412 126 V246 C412 346 344 416 256 452 C168 416 100 346 100 246 V126 Z"
+    fill="none"
+    stroke="#FFFFFF"
+    stroke-width="26"
+    stroke-linejoin="round"
+  />
+  <!-- Curved soil / leaf base -->
+  <path
+    d="M112 368 Q256 286 400 368 Q256 322 112 368 Z"
+    fill="#FFFFFF"
+  />
+  <path
+    d="M180 356 Q256 332 332 356 Q256 402 180 356 Z"
+    fill="#FFFFFF"
+  />
+  <!-- Mint side seedling leaves -->
+  <path
+    d="M250 322 C248 258 214 198 148 186 C150 246 184 282 238 282 C243 294 245 308 244 322 Z"
+    fill="url(#mintLeaf)"
+  />
+  <path
+    d="M262 322 C264 252 302 188 372 174 C370 238 332 276 274 276 C268 290 266 305 266 322 Z"
+    fill="url(#mintLeaf)"
+  />
+  <!-- Top crisp white bud leaf -->
+  <path
+    d="M256 120 C276 146 282 178 256 206 C230 178 236 146 256 120 Z"
+    fill="#FFFFFF"
+  />
+  <circle cx="256" cy="232" r="9" fill="#34D399" />
 </svg>

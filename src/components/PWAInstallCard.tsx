@@ -107,7 +107,7 @@ export function PWAInstallCard({ variant = 'card' }: PWAInstallCardProps) {
 
             <div className="flex items-center gap-2 text-[12px] text-[#707579]">
               <Smartphone className="w-4 h-4 text-[#3390EC] shrink-0" />
-              <span>O'rnatilgach, telefoningiz menyusida Telegram uslubidagi logotip bilan ochiladi.</span>
+              <span>O'rnatilgach, telefoningiz menyusida ochiladi.</span>
             </div>
 
             <button
